@@ -1,52 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
-import 'package:neon_revenant/game/neon_revenant_game.dart';
-
-class GameScreen extends StatelessWidget {
-  final NeonRevenantGame game = NeonRevenantGame();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 🎮 Área jugable (mitad superior de la pantalla)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height:
-                MediaQuery.of(context).size.height * 0.7, // 70% de la pantalla
-            child: GameWidget(game: game),
-          ),
-
-          // 🎮 Controles en pantalla (mitad inferior)
-          Positioned(
-            left: 20,
-            bottom: 20,
-            child: JoystickWidget(
-              isShooting: false,
-              onDirectionChanged: (direction) {
-                game.movementJoystick.update(direction);
-              },
-            ),
-          ),
-
-          Positioned(
-            right: 20,
-            bottom: 20,
-            child: JoystickWidget(
-              isShooting: true,
-              onDirectionChanged: (direction) {
-                game.shootingJoystick.update(direction);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'package:flutter/material.dart';
 
 class JoystickWidget extends StatefulWidget {
   final bool isShooting;

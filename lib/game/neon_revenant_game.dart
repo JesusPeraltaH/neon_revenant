@@ -1,50 +1,45 @@
-import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
-import 'package:neon_revenant/game/player.dart';
-import 'package:neon_revenant/images.dart';
+import 'dart:ui';
 
-class NeonRevenantGame extends FlameGame with HasCollisionDetection {
-  late Player player;
-  late JoystickComponent moveJoystick;
-  late JoystickComponent shootJoystick;
+import 'package:flame/game.dart';
+import 'package:flame/components.dart';
+import 'package:flame/geometry.dart';
+
+class NeonRevenantGame extends Game {
   late SpriteComponent background;
+  final Joystick movementJoystick = Joystick();
+  final Joystick shootingJoystick = Joystick();
 
   @override
   Future<void> onLoad() async {
-    await images.loadAll([Images.background, Images.player, Images.bullet]);
+    // Cargar el fondo
+    final backgroundSprite = await loadSprite(
+      'background.png',
+    ); // Asegúrate de tener este asset
+    background =
+        SpriteComponent()
+          ..sprite = backgroundSprite
+          ..size = size; // Tamaño del fondo igual al tamaño de la pantalla
 
-    // 🔹 Asegurar que el sprite se carga correctamente
-    final bgSprite = await loadSprite(Images.background);
-    background = SpriteComponent(sprite: bgSprite, size: size);
     add(background);
+  }
 
-    // 🔹 Crear y asignar el sprite del jugador antes de instanciarlo
-    final playerSprite = await loadSprite(Images.player);
-    player = Player(sprite: playerSprite);
-    add(player);
+  @override
+  void update(double dt) {
+    // Aquí puedes agregar la lógica de movimiento y disparo en el futuro
+    // Por ejemplo, actualizar la posición del jugador según el joystick de movimiento
+  }
 
-    // 🎮 Joystick de Movimiento
-    moveJoystick = JoystickComponent(
-      knob: CircleComponent(radius: 20, paint: Paint()..color = Colors.blue),
-      background: CircleComponent(
-        radius: 50,
-        paint: Paint()..color = Colors.blue.withOpacity(0.3),
-      ),
-      margin: const EdgeInsets.only(right: 30, bottom: 30),
-    );
+  @override
+  void render(Canvas canvas) {
+    // Renderizar el fondo
+    background.render(canvas);
+  }
+}
 
-    // 🔫 Joystick de Disparo
-    shootJoystick = JoystickComponent(
-      knob: CircleComponent(radius: 20, paint: Paint()..color = Colors.red),
-      background: CircleComponent(
-        radius: 50,
-        paint: Paint()..color = Colors.red.withOpacity(0.3),
-      ),
-      margin: const EdgeInsets.only(left: 30, bottom: 30),
-    );
+class Joystick {
+  Vector2 direction = Vector2.zero();
 
-    addAll([moveJoystick, shootJoystick]);
+  void update(Vector2 delta) {
+    direction = delta;
   }
 }
