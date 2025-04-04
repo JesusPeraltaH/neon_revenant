@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:neon_revenant/game/neon_revenant_game.dart';
+import 'package:neon_revenant/widgets/joystick_widget.dart';
 
 class GameScreen extends StatelessWidget {
   final NeonRevenantGame game = NeonRevenantGame();
@@ -8,110 +9,98 @@ class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // 🎮 Área jugable (mitad superior de la pantalla)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height:
-                MediaQuery.of(context).size.height * 0.7, // 70% de la pantalla
-            child: GameWidget(game: game),
-          ),
-
-          // 🎮 Controles en pantalla (mitad inferior)
-          Positioned(
-            left: 20,
-            bottom: 20,
-            child: JoystickWidget(
-              isShooting: false,
-              onDirectionChanged: (direction) {
-                game.movementJoystick.update(direction);
-              },
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // -- Distribución vertical: área de juego (arriba) y controles (abajo)
+            Column(
+              children: [
+                // Parte superior para el juego
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    color: Colors.black,
+                    // Aquí podrías usar GameWidget si lo deseas:
+                    // child: GameWidget(game: game),
+                  ),
+                ),
+                // Parte inferior para controles
+                Expanded(
+                  flex: 1,
+                  child: Container(color: Colors.grey[800]),
+                ),
+              ],
             ),
-          ),
 
-          Positioned(
-            right: 20,
-            bottom: 20,
-            child: JoystickWidget(
-              isShooting: true,
-              onDirectionChanged: (direction) {
-                game.shootingJoystick.update(direction);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class JoystickWidget extends StatefulWidget {
-  final bool isShooting;
-  final Function(Vector2)? onDirectionChanged;
-
-  const JoystickWidget({
-    Key? key,
-    required this.isShooting,
-    this.onDirectionChanged,
-  }) : super(key: key);
-
-  @override
-  _JoystickWidgetState createState() => _JoystickWidgetState();
-}
-
-class _JoystickWidgetState extends State<JoystickWidget> {
-  Offset _dragPosition = Offset.zero;
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _dragPosition = details.localPosition;
-    });
-
-    final center = Offset(50, 50); // Centro del joystick
-    final delta = _dragPosition - center;
-    final direction = Vector2(delta.dx, delta.dy).normalized();
-
-    widget.onDirectionChanged?.call(direction);
-  }
-
-  void _onPanEnd(DragEndDetails details) {
-    setState(() {
-      _dragPosition = Offset.zero;
-    });
-
-    widget.onDirectionChanged?.call(Vector2.zero());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color:
-              widget.isShooting
-                  ? Colors.red.withOpacity(0.3)
-                  : Colors.blue.withOpacity(0.3),
-        ),
-        child: Center(
-          child: Transform.translate(
-            offset: _dragPosition,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.isShooting ? Colors.red : Colors.blue,
+            // -- Joystick de movimiento (esquina inferior izquierda)
+            Positioned(
+              left: 40,
+              bottom: 60,
+              child: Container(
+                width: 120,
+                height: 120,
+                child: JoystickWidget(
+                  isShooting: false,
+                  onDirectionChanged: (direction) {
+                    game.movementJoystick.update(direction);
+                  },
+                ),
               ),
             ),
-          ),
+
+            // -- Joystick de disparo (esquina inferior derecha)
+            Positioned(
+              right: 40,
+              bottom: 60,
+              child: Container(
+                width: 120,
+                height: 120,
+                child: JoystickWidget(
+                  isShooting: true,
+                  onDirectionChanged: (direction) {
+                    game.shootingJoystick.update(direction);
+                  },
+                ),
+              ),
+            ),
+
+            // -- Botón de Menú (arriba izquierda)
+            Positioned(
+              top: 600,
+              left: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Lógica para menú
+                },
+                child: Text("Menu"),
+              ),
+            ),
+
+            // -- Botón "+" (aprox. centro-derecha)
+            Positioned(
+              // Ajusta la posición según tu preferencia
+              top: MediaQuery.of(context).size.height * 0.7,
+              right: 150,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Lógica para "+"
+                },
+                child: Text("+"),
+              ),
+            ),
+
+            // -- Botón Flecha (arriba derecha)
+            Positioned(
+              top: 600,
+              right: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Lógica para flecha
+                },
+                child: Icon(Icons.arrow_upward),
+              ),
+            ),
+          ],
         ),
       ),
     );

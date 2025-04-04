@@ -11,16 +11,16 @@ class NeonRevenantGame extends Game {
 
   @override
   Future<void> onLoad() async {
-    // Cargar el fondo
-    final backgroundSprite = await loadSprite(
-      'background.png',
-    ); // Asegúrate de tener este asset
-    background =
-        SpriteComponent()
-          ..sprite = backgroundSprite
-          ..size = size; // Tamaño del fondo igual al tamaño de la pantalla
+    // // Cargar el fondo
+    // final backgroundSprite = await loadSprite(
+    //   'background.png',
+    // ); // Asegúrate de tener este asset
+    // background =
+    //     SpriteComponent()
+    //       ..sprite = backgroundSprite
+    //       ..size = size; // Tamaño del fondo igual al tamaño de la pantalla
 
-    add(background);
+    // add(background);
   }
 
   @override

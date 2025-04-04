@@ -20,7 +20,21 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+  body: Stack(
+    children: [
+      // Fondo escalado
+      Transform.scale(
+        scale: 1.3, // Aumenta este valor para hacerla más grande
+        child: Image.asset(
+          'assets/fondo.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        ),
+      ),
+
+      // Contenido encima del fondo
+      Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -33,7 +47,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 40),
-
             ElevatedButton(
               onPressed: _signInWithGoogle,
               child: Text("Inicia sesión"),
@@ -42,7 +55,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -55,16 +67,18 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
             ),
-
             SizedBox(height: 20),
-
             GestureDetector(
               onTap: _signInWithGoogle,
-              child: Image.asset(Images.glogo, width: 50, height: 50),
+              child: Image.asset('assets/images/glogo.png', width: 50, height: 50),
             ),
           ],
         ),
       ),
-    );
+    ],
+  ),
+);
+
+
   }
 }
