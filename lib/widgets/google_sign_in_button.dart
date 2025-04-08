@@ -16,7 +16,7 @@ class GoogleSignInButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: _handleSignIn,
-      child: Text('Ingresa con Google', style: TextStyle(color: Colors.white),),
+      child: Text('Ingresar con Google', style: TextStyle(color: Colors.white),),
       style: ElevatedButton.styleFrom(
          backgroundColor: Color(0xFF1A1616),
       ),
