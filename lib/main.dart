@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:neon_revenant/screens/welcome_screen.dart';
+import 'package:neon_revenant/screens/welcome_screen_notlogged.dart';
 
 void main() {
   runApp(MyApp());

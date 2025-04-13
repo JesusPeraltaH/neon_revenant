@@ -1,3 +1,4 @@
+import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:neon_revenant/game/neon_revenant_game.dart';
@@ -12,59 +13,46 @@ class GameScreen extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // -- Distribución vertical: área de juego (arriba) y controles (abajo)
-            Column(
-              children: [
-                // Parte superior para el juego
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    color: Colors.black,
-                    // Aquí podrías usar GameWidget si lo deseas:
-                    // child: GameWidget(game: game),
-                  ),
-                ),
-                // Parte inferior para controles
-                Expanded(
-                  flex: 1,
-                  child: Container(color: Colors.grey[800]),
-                ),
-              ],
+            // Área de juego
+            Positioned.fill(
+              child: 
+              //GameWidget(game: game),
+              GameWidget(
+                game: NeonRevenantGame(),
             ),
-
-            // -- Joystick de movimiento (esquina inferior izquierda)
+            ),
+            // Joystick de movimiento (esquina inferior izquierda)
             Positioned(
               left: 40,
               bottom: 60,
-              child: Container(
+              child: SizedBox(
                 width: 120,
                 height: 120,
                 child: JoystickWidget(
                   isShooting: false,
                   onDirectionChanged: (direction) {
-                    game.movementJoystick.update(direction);
+                    game.movementDirection = direction;
                   },
                 ),
               ),
             ),
-
-            // -- Joystick de disparo (esquina inferior derecha)
+            // Joystick de disparo (esquina inferior derecha)
             Positioned(
               right: 40,
               bottom: 60,
-              child: Container(
+              child: SizedBox(
                 width: 120,
                 height: 120,
                 child: JoystickWidget(
                   isShooting: true,
                   onDirectionChanged: (direction) {
-                    game.shootingJoystick.update(direction);
+                    game.shootingDirection = direction;
                   },
+
                 ),
               ),
             ),
-
-            // -- Botón de Menú (arriba izquierda)
+            // Botón de Menú (arriba izquierda)
             Positioned(
               top: 600,
               left: 50,
@@ -72,13 +60,11 @@ class GameScreen extends StatelessWidget {
                 onPressed: () {
                   // Lógica para menú
                 },
-                child: Text("Menu"),
+                child: Text("Menú"),
               ),
             ),
-
-            // -- Botón "+" (aprox. centro-derecha)
+            // Botón "+" (aproximadamente en el centro-derecha)
             Positioned(
-              // Ajusta la posición según tu preferencia
               top: MediaQuery.of(context).size.height * 0.7,
               right: 150,
               child: ElevatedButton(
@@ -88,8 +74,7 @@ class GameScreen extends StatelessWidget {
                 child: Text("+"),
               ),
             ),
-
-            // -- Botón Flecha (arriba derecha)
+            // Botón Flecha (arriba derecha)
             Positioned(
               top: 600,
               right: 60,
