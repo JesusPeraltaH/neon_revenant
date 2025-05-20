@@ -1,35 +1,48 @@
-// import 'package:flame/components.dart';
-// import 'package:flame/palette.dart';
-// import 'package:flutter/material.dart';
-
-// class PlayerComponent extends StatelessWidget{
-    
-//     @override
-//       Widget build(BuildContext context){
-//         return Container(
-//           height: 50,
-//           child: Image.asset('assets/images/player.png',
-//           fit: BoxFit.cover,
-//           ),
-
-//         );
-//     }
-// }
-
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame/flame.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:neon_revenant/game/neon_revenant_game.dart';
+import 'package:neon_revenant/widgets/components.dart';
 
-class PlayerComponent extends SpriteAnimationComponent with HasGameRef<NeonRevenantGame> {
+class PlayerComponent extends SpriteAnimationComponent
+    with HasGameRef<NeonRevenantGame>, CollisionCallbacks {
   double speed = 150.0;
   SpriteAnimation? animationUp;
   SpriteAnimation? animationDown;
   SpriteAnimation? animationLeft;
   SpriteAnimation? animationRight;
-  SpriteAnimation? currentAnimation; // La animación que se está mostrando actualmente
+  SpriteAnimation? currentAnimation;
+  bool isColliding = false;
+  Vector2 _lastValidPosition = Vector2.zero();
 
   PlayerComponent() : super(size: Vector2(64.0, 80.0), anchor: Anchor.center);
+
+  @override
+  void onCollisionStart(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    if (other is StaticHitboxComponent) {
+      isColliding = true;
+      // Revertir inmediatamente a la última posición válida
+      position = _lastValidPosition;
+      print('Colisión detectada - Posición revertida a: $_lastValidPosition');
+    }
+    super.onCollisionStart(intersectionPoints, other);
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    if (other is StaticHitboxComponent) {
+      isColliding = false;
+      print('Fin de colisión');
+    }
+    super.onCollisionEnd(other);
+  }
 
   @override
   Future<void> onLoad() async {
@@ -51,7 +64,10 @@ class PlayerComponent extends SpriteAnimationComponent with HasGameRef<NeonReven
       stepTime: 0.15,
       textureSize: Vector2(64, 80),
     );
-    animationDown = SpriteAnimation.fromFrameData(spriteSheetDown, spriteDataDown);
+    animationDown = SpriteAnimation.fromFrameData(
+      spriteSheetDown,
+      spriteDataDown,
+    );
 
     // --- Cargar animación para IZQUIERDA/DERECHA ---
     final spriteSheetLeft = await Flame.images.load('player_left.png');
@@ -60,7 +76,10 @@ class PlayerComponent extends SpriteAnimationComponent with HasGameRef<NeonReven
       stepTime: 0.15,
       textureSize: Vector2(64, 80),
     );
-    animationLeft = SpriteAnimation.fromFrameData(spriteSheetLeft, spriteDataLeft);
+    animationLeft = SpriteAnimation.fromFrameData(
+      spriteSheetLeft,
+      spriteDataLeft,
+    );
 
     final spriteSheetRight = await Flame.images.load('player_right.png');
     final spriteDataRight = SpriteAnimationData.sequenced(
@@ -68,11 +87,26 @@ class PlayerComponent extends SpriteAnimationComponent with HasGameRef<NeonReven
       stepTime: 0.15,
       textureSize: Vector2(64, 80),
     );
-    animationRight = SpriteAnimation.fromFrameData(spriteSheetRight, spriteDataRight);
+    animationRight = SpriteAnimation.fromFrameData(
+      spriteSheetRight,
+      spriteDataRight,
+    );
 
     // Establecer la animación inicial (por ejemplo, hacia abajo)
     currentAnimation = animationDown;
     animation = currentAnimation;
+
+    // Añadir hitbox rectangular más grande
+    add(
+      RectangleHitbox(
+        size: Vector2(48, 64), // Hitbox más grande
+        position: Vector2(
+          32,
+          40,
+        ), // Centrada exactamente en el sprite del jugador
+        anchor: Anchor.center,
+      )..debugMode = true,
+    );
   }
 
   @override
@@ -80,31 +114,71 @@ class PlayerComponent extends SpriteAnimationComponent with HasGameRef<NeonReven
     super.update(dt);
 
     final Vector2 direction = gameRef.movementDirection;
+    bool isMoving = direction != Vector2.zero();
 
-    if (direction.y < 0) { // Moviéndose hacia arriba
-      currentAnimation = animationUp;
-    } else if (direction.y > 0) { // Moviéndose hacia abajo
-      currentAnimation = animationDown;
-    } else if (direction.x < 0) { // Moviéndose hacia la izquierda
-      currentAnimation = animationLeft;
-      flipHorizontally();
-       // Usar renderFlipX para SpriteComponent/SpriteAnimationComponent
-    } else if (direction.x > 0) { // Moviéndose hacia la derecha
-      currentAnimation = animationRight;
-      flipVertically();
-    } else {
-      // Si no hay movimiento, puedes mostrar una animación de "idle" si la tienes
-      // currentAnimation = animationIdle;
+    if (isMoving) {
+      // Actualizar animaciones
+      if (direction.y < 0 &&
+          (direction.y.abs() > direction.x.abs() || direction.x == 0)) {
+        currentAnimation = animationUp;
+      } else if (direction.y > 0 &&
+          (direction.y.abs() > direction.x.abs() || direction.x == 0)) {
+        currentAnimation = animationDown;
+      } else if (direction.x < 0) {
+        currentAnimation = animationLeft;
+      } else if (direction.x > 0) {
+        currentAnimation = animationRight;
+      }
     }
 
-    // Actualizar la animación mostrada solo si ha cambiado
-    if (animation != currentAnimation) {
+    if (animation != currentAnimation && currentAnimation != null) {
       animation = currentAnimation;
-      //animation?.reset(); // Llamar a reset() solo si animation no es nulo
     }
 
-    if (direction != Vector2.zero()) {
-      position.add(direction.normalized() * speed * dt);
+    // Guardar la posición actual si no estamos colisionando
+    if (!isColliding) {
+      _lastValidPosition = position;
     }
+
+    if (isMoving) {
+      // Obtener los límites del mapa
+      final mapWidth = gameRef.mapComponent.size.x;
+      final mapHeight = gameRef.mapComponent.size.y;
+
+      // Los límites para el centro del jugador
+      final minX = size.x / 2;
+      final maxX = mapWidth - (size.x / 2);
+      final minY = size.y / 2;
+      final maxY = mapHeight - (size.y / 2);
+
+      // Calcular la nueva posición
+      Vector2 nextPosition = position + direction.normalized() * speed * dt;
+
+      // Restringir la posición del jugador a los límites del mapa
+      nextPosition.x = nextPosition.x.clamp(minX, maxX);
+      nextPosition.y = nextPosition.y.clamp(minY, maxY);
+
+      // Actualizar la posición
+      position = nextPosition;
+    }
+
+    // Debug: Imprimir posición actual del jugador
+    if (kDebugMode) {
+      print(
+        'Player Position: x=${position.x.toStringAsFixed(2)}, y=${position.y.toStringAsFixed(2)}',
+      );
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    // Debug: dibujar un borde alrededor del jugador
+    final paint =
+        Paint()
+          ..color = Colors.blue
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), paint);
   }
 }
