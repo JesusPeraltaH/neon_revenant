@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:neon_revenant/game/neon_revenant_game.dart';
-import 'package:neon_revenant/widgets/components.dart';
+
 
 class PlayerComponent extends SpriteAnimationComponent
     with HasGameRef<NeonRevenantGame>, CollisionCallbacks {
